@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    container_name: finance-dashboard-api
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=${PORT}
+      - JWT_SECRET=${JWT_SECRET}
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}?schema=public
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    command: sh -c "npx prisma migrate deploy && npm start"
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: finance-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: finance-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:
