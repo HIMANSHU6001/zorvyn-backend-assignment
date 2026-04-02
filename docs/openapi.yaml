@@ -95,6 +95,55 @@ components:
           type: string
           enum: [ACTIVE, INACTIVE]
           example: INACTIVE
+    RecordBody:
+      type: object
+      required:
+        - amount
+        - type
+        - category
+        - date
+      properties:
+        amount:
+          type: number
+          format: float
+          example: 1500.5
+        type:
+          type: string
+          enum: [INCOME, EXPENSE]
+          example: INCOME
+        category:
+          type: string
+          example: Salary
+        date:
+          type: string
+          format: date-time
+          example: 2026-04-01T00:00:00.000Z
+        note:
+          type: string
+          nullable: true
+          example: Monthly salary
+    RecordUpdateBody:
+      type: object
+      properties:
+        amount:
+          type: number
+          format: float
+          example: 280.75
+        type:
+          type: string
+          enum: [INCOME, EXPENSE]
+          example: EXPENSE
+        category:
+          type: string
+          example: Groceries
+        date:
+          type: string
+          format: date-time
+          example: 2026-04-02T00:00:00.000Z
+        note:
+          type: string
+          nullable: true
+          example: Weekly supermarket bill
 paths:
   /api/health:
     get:
@@ -259,6 +308,230 @@ paths:
                 $ref: '#/components/schemas/ErrorEnvelope'
         '404':
           description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/records:
+    post:
+      tags: [Records]
+      summary: Create a financial record
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecordBody'
+      responses:
+        '201':
+          description: Record created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: Forbidden (requires ANALYST or ADMIN)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+    get:
+      tags: [Records]
+      summary: List records with filters and pagination
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            example: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            example: 10
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum: [INCOME, EXPENSE]
+        - in: query
+          name: category
+          schema:
+            type: string
+            example: Groceries
+        - in: query
+          name: search
+          schema:
+            type: string
+            example: food
+        - in: query
+          name: startDate
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: endDate
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Paginated records list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/records/{id}:
+    get:
+      tags: [Records]
+      summary: Get a single record by id
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Record details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: Record not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+    patch:
+      tags: [Records]
+      summary: Update a record
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecordUpdateBody'
+      responses:
+        '200':
+          description: Record updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: Forbidden (requires ANALYST or ADMIN)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: Record not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+    delete:
+      tags: [Records]
+      summary: Soft delete a record
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Record soft deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: Forbidden (requires ANALYST or ADMIN)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: Record not found
           content:
             application/json:
               schema:
