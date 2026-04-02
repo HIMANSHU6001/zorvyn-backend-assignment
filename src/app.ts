@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import { errorMiddleware } from './common/middleware/error.middleware';
 import { notFoundMiddleware } from './common/middleware/not-found.middleware';
@@ -9,7 +10,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
-app.use(apiRouter);
+app.use('/api', apiRouter);
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);
 

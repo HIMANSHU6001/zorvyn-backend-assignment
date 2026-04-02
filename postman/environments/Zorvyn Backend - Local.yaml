@@ -1,0 +1,14 @@
+name: Zorvyn Backend - Local
+values:
+  - key: baseUrl
+    value: 'http://localhost:3000/api'
+    enabled: true
+    type: default
+  - key: accessToken
+    value: ''
+    enabled: true
+    type: default
+  - key: userId
+    value: ''
+    enabled: true
+    type: default

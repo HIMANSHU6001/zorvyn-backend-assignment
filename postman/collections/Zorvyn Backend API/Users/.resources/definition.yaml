@@ -1,0 +1,6 @@
+$kind: collection
+description: |-
+  User management endpoints.
+  - PATCH /users/:id/status — update a user's status (ACTIVE | INACTIVE).
+    Requires: Bearer token + ADMIN role.
+order: 3

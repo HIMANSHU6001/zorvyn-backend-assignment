@@ -1,0 +1,7 @@
+$kind: collection
+description: |-
+  Authentication endpoints.
+  - POST /auth/register — create a new account (email + password, min 8 chars)
+  - POST /auth/login    — obtain a JWT access token
+  - GET  /auth/me       — fetch the authenticated user's profile (Bearer token required)
+order: 2

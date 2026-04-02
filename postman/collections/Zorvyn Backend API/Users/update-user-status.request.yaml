@@ -1,0 +1,46 @@
+$kind: http-request
+name: 'Update User Status'
+method: PATCH
+url: '{{baseUrl}}/users/{{userId}}/status'
+order: 1000
+pathVariables:
+  - key: userId
+    value: '{{userId}}'
+    description: UUID of the user whose status is being updated
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{accessToken}}'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "status": "INACTIVE"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200", function () {
+        pm.response.to.have.status(200);
+      });
+
+      pm.test("Response is JSON", function () {
+        pm.response.to.be.json;
+      });
+
+      pm.test("Response contains updated user", function () {
+        const body = pm.response.json();
+        pm.expect(body).to.have.property("data");
+        pm.expect(body.data).to.have.property("user");
+        pm.expect(body.data.user).to.have.property("status");
+      });
+
+      pm.test("Status value is valid", function () {
+        const body = pm.response.json();
+        pm.expect(["ACTIVE", "INACTIVE"]).to.include(body.data.user.status);
+      });

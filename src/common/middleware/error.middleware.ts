@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+import { HttpError } from '../errors/http-error';
 import { sendError } from '../utils/response';
 
 export function errorMiddleware(
@@ -7,12 +8,16 @@ export function errorMiddleware(
   res: Response,
   _next: NextFunction
 ) {
-  const message = err instanceof Error ? err.message : 'Internal server error';
   const isDevelopment = process.env.NODE_ENV === 'development';
 
-  if (isDevelopment && err instanceof Error) {
-    return sendError(res, message, 500, { stack: err.stack });
+  if (err instanceof HttpError) {
+    const details = isDevelopment ? err.details : undefined;
+    return sendError(res, err.message, err.statusCode, details);
   }
 
-  return sendError(res, message, 500);
+  if (isDevelopment && err instanceof Error) {
+    return sendError(res, err.message, 500, { stack: err.stack });
+  }
+
+  return sendError(res, 'Internal server error', 500);
 }
