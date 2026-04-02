@@ -275,7 +275,6 @@ export async function updateRecord(user: AuthenticatedUser, id: string, payload:
   if (payload.categoryId) {
     const category = await getAccessibleCategory(user, payload.categoryId);
     updatedData.categoryId = category.id;
-    updatedData.category = category.name;
   }
 
   const updated = await prisma.$transaction(async (tx) => {
@@ -322,6 +321,12 @@ export async function softDeleteRecord(user: AuthenticatedUser, id: string) {
       userId: true,
       type: true,
       category: true,
+      categoryRef: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
     },
   });
 
@@ -345,7 +350,8 @@ export async function softDeleteRecord(user: AuthenticatedUser, id: string) {
         entityId: existing.id,
         metadata: {
           type: existing.type,
-          category: existing.category,
+          categoryId: existing.categoryRef?.id ?? null,
+          category: existing.categoryRef?.name ?? existing.category,
           softDeleted: true,
         },
       },
@@ -386,9 +392,13 @@ function buildWhere(user: AuthenticatedUser, query: ListRecordsQuery) {
   if (query.search) {
     where.OR = [
       {
-        category: {
-          contains: query.search,
-          mode: 'insensitive',
+        categoryRef: {
+          is: {
+            name: {
+              contains: query.search,
+              mode: 'insensitive',
+            },
+          },
         },
       },
       {
@@ -409,15 +419,10 @@ function mapRecord(record: SelectedFinancialRecord) {
     userId: record.userId,
     amount: record.amount.toString(),
     type: record.type,
-    category: record.categoryRef
-      ? {
-          id: record.categoryRef.id,
-          name: record.categoryRef.name,
-        }
-      : {
-          id: record.categoryId,
-          name: record.category,
-        },
+    category: {
+      id: record.categoryRef?.id ?? record.categoryId,
+      name: record.categoryRef?.name ?? record.category,
+    },
     date: record.date,
     note: record.note,
     createdAt: record.createdAt,
