@@ -3,10 +3,10 @@ import { HttpError } from '../src/common/errors/http-error';
 import { AuditAction, EntityType, Role, UserStatus } from '../src/generated/prisma/enums';
 import type { AuthenticatedUser } from '../src/common/types/auth.types';
 
-const mockFindUnique = jest.fn();
-const mockUserUpdate = jest.fn();
-const mockAuditLogCreate = jest.fn();
-const mockTransaction = jest.fn();
+const mockFindUnique: any = jest.fn();
+const mockUserUpdate: any = jest.fn();
+const mockAuditLogCreate: any = jest.fn();
+const mockTransaction: any = jest.fn();
 
 jest.mock('../src/config/prisma', () => ({
   __esModule: true,
@@ -31,7 +31,7 @@ describe('updateUserRole service', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    mockTransaction.mockImplementation(async (callback: (tx: any) => Promise<unknown>) =>
+    mockTransaction.mockImplementation(async (callback: any) =>
       callback({
         user: {
           update: mockUserUpdate,
@@ -80,7 +80,7 @@ describe('updateUserRole service', () => {
       }),
     });
 
-    const auditCall = mockAuditLogCreate.mock.calls[0][0].data;
+    const auditCall: any = mockAuditLogCreate.mock.calls[0][0].data;
     expect(auditCall.metadata).toMatchObject({
       previous: { role: Role.VIEWER },
       updated: { role: Role.ANALYST },

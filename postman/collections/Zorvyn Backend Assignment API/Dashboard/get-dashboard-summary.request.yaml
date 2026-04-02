@@ -1,0 +1,30 @@
+$kind: http-request
+name: Get Dashboard Summary
+method: GET
+url: '{{baseUrl}}/dashboard/summary'
+order: 1000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{accessToken}}'
+headers:
+  - key: Content-Type
+    value: application/json
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200", function () {
+        pm.response.to.have.status(200);
+      });
+
+      pm.test("Response has dashboard sections", function () {
+        const body = pm.response.json();
+        pm.expect(body.success).to.eql(true);
+        pm.expect(body.data).to.have.property("range");
+        pm.expect(body.data).to.have.property("summary");
+        pm.expect(body.data).to.have.property("categoryTotals");
+        pm.expect(body.data).to.have.property("recentActivity");
+        pm.expect(body.data).to.have.property("trends");
+      });

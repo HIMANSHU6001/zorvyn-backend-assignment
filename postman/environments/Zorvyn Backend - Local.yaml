@@ -24,3 +24,15 @@ values:
     value: ''
     enabled: true
     type: default
+  - key: dashboardMonth
+    value: ''
+    enabled: true
+    type: default
+  - key: dashboardStartDate
+    value: ''
+    enabled: true
+    type: default
+  - key: dashboardEndDate
+    value: ''
+    enabled: true
+    type: default

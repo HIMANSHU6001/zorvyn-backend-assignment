@@ -1,0 +1,6 @@
+$kind: collection
+name: Dashboard
+description: |-
+  Dashboard summary endpoint.
+  - GET /dashboard/summary — user-scoped totals, category totals, recent activity, and trends.
+order: 7

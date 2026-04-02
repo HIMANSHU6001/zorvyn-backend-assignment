@@ -2,6 +2,7 @@ import { AuditAction, EntityType, Role } from '../../generated/prisma/enums';
 import prisma from '../../config/prisma';
 import { HttpError } from '../../common/errors/http-error';
 import type { AuthenticatedUser } from '../../common/types/auth.types';
+import { invalidateDashboardSummaryCache } from '../dashboard/dashboard.service';
 import type {
   CreateCategoryBody,
   CreateRecordBody,
@@ -191,6 +192,8 @@ export async function createRecord(user: AuthenticatedUser, payload: CreateRecor
     return record;
   });
 
+  await invalidateDashboardSummaryCache(user.id);
+
   return mapRecord(created);
 }
 
@@ -307,6 +310,8 @@ export async function updateRecord(user: AuthenticatedUser, id: string, payload:
     return record;
   });
 
+  await invalidateDashboardSummaryCache(user.id);
+
   return mapRecord(updated);
 }
 
@@ -357,6 +362,8 @@ export async function softDeleteRecord(user: AuthenticatedUser, id: string) {
       },
     });
   });
+
+  await invalidateDashboardSummaryCache(user.id);
 }
 
 function ensureRecordAccess(user: AuthenticatedUser, recordUserId: string) {

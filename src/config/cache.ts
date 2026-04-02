@@ -37,3 +37,19 @@ export async function delCache(key: string): Promise<number> {
   await ensureRedisConnected();
   return redis.del(key);
 }
+
+export async function delCacheByPattern(pattern: string): Promise<number> {
+  await ensureRedisConnected();
+
+  const keys: string[] = [];
+
+  for await (const key of redis.scanIterator({ MATCH: pattern, COUNT: 100 })) {
+    keys.push(String(key));
+  }
+
+  if (keys.length === 0) {
+    return 0;
+  }
+
+  return redis.del(keys);
+}
