@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: Finance Dashboard API
   version: 1.0.0
-  description: API documentation for authentication, RBAC, health checks, and user status management.
+  description: API documentation for authentication, RBAC, health checks, and user management.
 servers:
   - url: http://localhost:3000
     description: Local development
@@ -95,6 +95,15 @@ components:
           type: string
           enum: [ACTIVE, INACTIVE]
           example: INACTIVE
+    UserRoleBody:
+      type: object
+      required:
+        - role
+      properties:
+        role:
+          type: string
+          enum: [VIEWER, ANALYST, ADMIN]
+          example: ANALYST
     CategoryBody:
       type: object
       required:
@@ -349,6 +358,57 @@ paths:
                 $ref: '#/components/schemas/ErrorEnvelope'
         '403':
           description: Forbidden (requires ADMIN)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/users/{id}/role:
+    patch:
+      tags: [Users]
+      summary: Assign role to another user (ADMIN only)
+      description: Only ADMIN users can assign roles. Self-assignment is blocked and inactive users cannot be assigned roles.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRoleBody'
+      responses:
+        '200':
+          description: User role updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: Forbidden (requires ADMIN, self-assignment blocked, or target user inactive)
           content:
             application/json:
               schema:

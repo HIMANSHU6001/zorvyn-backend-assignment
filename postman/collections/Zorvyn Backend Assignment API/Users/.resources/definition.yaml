@@ -2,5 +2,6 @@ $kind: collection
 description: |-
   User management endpoints.
   - PATCH /users/:id/status — update a user's status (ACTIVE | INACTIVE).
+  - PATCH /users/:id/role — assign role to another user (VIEWER | ANALYST | ADMIN).
     Requires: Bearer token + ADMIN role.
 order: 3
