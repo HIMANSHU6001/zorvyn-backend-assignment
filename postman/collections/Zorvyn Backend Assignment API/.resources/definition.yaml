@@ -1,0 +1,14 @@
+$kind: collection
+name: Zorvyn Backend Assignment API
+description: >-
+  REST API collection for the Zorvyn Backend Assignment.
+
+  Base URL: http://localhost:3000/api
+
+  Auth: Bearer token (JWT) — obtain via POST /api/auth/login and set
+  {{accessToken}}.
+variables:
+  baseUrl: http://localhost:3000/api
+  accessToken: ""
+  userId: ""
+  recordId: ""

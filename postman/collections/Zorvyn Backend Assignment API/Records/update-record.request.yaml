@@ -1,0 +1,43 @@
+$kind: http-request
+name: Update Record
+method: PATCH
+url: '{{baseUrl}}/records/{{recordId}}'
+order: 4000
+pathVariables:
+  - key: recordId
+    value: '{{recordId}}'
+    description: UUID of the record to update
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{accessToken}}'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "amount": 280.75,
+      "type": "EXPENSE",
+      "category": "Groceries",
+      "date": "2026-04-02T00:00:00.000Z",
+      "note": "Weekly supermarket bill"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200", function () {
+        pm.response.to.have.status(200);
+      });
+
+      pm.test("Response is JSON", function () {
+        pm.response.to.be.json;
+      });
+
+      pm.test("Response contains updated record", function () {
+        const body = pm.response.json();
+        pm.expect(body).to.have.property("data");
+      });

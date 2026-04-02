@@ -1,0 +1,36 @@
+$kind: http-request
+name: List Records
+method: GET
+url: '{{baseUrl}}/records?page=1&limit=10&type=EXPENSE&category=Groceries&search=food&startDate=2026-04-01T00:00:00.000Z&endDate=2026-04-30T23:59:59.999Z'
+order: 2000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{accessToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200", function () {
+        pm.response.to.have.status(200);
+      });
+
+      pm.test("Response is JSON", function () {
+        pm.response.to.be.json;
+      });
+
+      pm.test("Response contains list data", function () {
+        const body = pm.response.json();
+        pm.expect(body).to.have.property("data");
+        pm.expect(body).to.have.property("meta");
+      });
+
+      // Auto-save first record id when list has at least one item
+      if (pm.response.code === 200) {
+        const body = pm.response.json();
+        const firstRecord = body?.data?.[0] ?? body?.data?.records?.[0];
+        if (firstRecord && firstRecord.id) {
+          pm.collectionVariables.set("recordId", firstRecord.id);
+        }
+      }

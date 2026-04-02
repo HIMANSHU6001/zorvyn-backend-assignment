@@ -12,3 +12,7 @@ values:
     value: ''
     enabled: true
     type: default
+  - key: recordId
+    value: ''
+    enabled: true
+    type: default

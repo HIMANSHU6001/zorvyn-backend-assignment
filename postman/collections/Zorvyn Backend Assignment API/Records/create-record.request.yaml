@@ -1,0 +1,48 @@
+$kind: http-request
+name: Create Record
+method: POST
+url: '{{baseUrl}}/records'
+order: 1000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{accessToken}}'
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "amount": 1500.5,
+      "type": "INCOME",
+      "category": "Salary",
+      "date": "2026-04-01T00:00:00.000Z",
+      "note": "Monthly salary"
+    }
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 201", function () {
+        pm.response.to.have.status(201);
+      });
+
+      pm.test("Response is JSON", function () {
+        pm.response.to.be.json;
+      });
+
+      pm.test("Response contains record data", function () {
+        const body = pm.response.json();
+        pm.expect(body).to.have.property("data");
+      });
+
+      // Auto-save record id for subsequent requests
+      if (pm.response.code === 201) {
+        const body = pm.response.json();
+        const createdRecord = body?.data?.record ?? body?.data;
+        if (createdRecord && createdRecord.id) {
+          pm.collectionVariables.set("recordId", createdRecord.id);
+        }
+      }

@@ -1,0 +1,9 @@
+$kind: collection
+description: |-
+  Financial records endpoints.
+  - POST   /records      — create a financial record (ANALYST/ADMIN)
+  - GET    /records      — list records with filters and pagination
+  - GET    /records/:id  — fetch a record by id
+  - PATCH  /records/:id  — update a record (ANALYST/ADMIN)
+  - DELETE /records/:id  — soft delete a record (ANALYST/ADMIN)
+order: 4

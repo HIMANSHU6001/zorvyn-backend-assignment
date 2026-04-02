@@ -1,0 +1,30 @@
+$kind: http-request
+name: Delete Record
+method: DELETE
+url: '{{baseUrl}}/records/{{recordId}}'
+order: 5000
+pathVariables:
+  - key: recordId
+    value: '{{recordId}}'
+    description: UUID of the record to soft delete
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{accessToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200", function () {
+        pm.response.to.have.status(200);
+      });
+
+      pm.test("Response is JSON", function () {
+        pm.response.to.be.json;
+      });
+
+      pm.test("Response contains success envelope", function () {
+        const body = pm.response.json();
+        pm.expect(body).to.have.property("success");
+      });
