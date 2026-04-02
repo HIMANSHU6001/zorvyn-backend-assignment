@@ -1,14 +1,21 @@
 import 'dotenv/config';
 import express from 'express';
+import swaggerUi from 'swagger-ui-express';
 import { errorMiddleware } from './common/middleware/error.middleware';
 import { notFoundMiddleware } from './common/middleware/not-found.middleware';
 import { disconnectRedis, ensureRedisConnected } from './config/redis';
+import { swaggerDocument } from './config/swagger';
 import apiRouter from './routes';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
+
+app.get('/api/docs/openapi.json', (_req, res) => {
+  res.status(200).json(swaggerDocument);
+});
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use('/api', apiRouter);
 app.use(notFoundMiddleware);
