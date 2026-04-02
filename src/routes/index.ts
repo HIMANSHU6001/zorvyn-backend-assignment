@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import auditRouter from '../modules/audit/audit.routes';
 import authRouter from '../modules/auth/auth.routes';
 import financeRouter from '../modules/finance/finance.routes';
 import healthRouter from '../modules/health/health.routes';
@@ -8,6 +9,7 @@ const apiRouter = Router();
 
 apiRouter.use(healthRouter);
 apiRouter.use(authRouter);
+apiRouter.use(auditRouter);
 apiRouter.use(financeRouter);
 apiRouter.use(userRouter);
 

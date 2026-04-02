@@ -1,0 +1,6 @@
+$kind: collection
+description: |-
+  Audit log exploration endpoints (ADMIN only).
+  - GET /audit-logs       — list audit logs with filters and pagination
+  - GET /audit-logs/:id   — fetch a single audit log by id
+order: 6

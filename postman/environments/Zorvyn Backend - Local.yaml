@@ -20,3 +20,7 @@ values:
     value: ''
     enabled: true
     type: default
+  - key: auditLogId
+    value: ''
+    enabled: true
+    type: default

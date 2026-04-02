@@ -1,4 +1,5 @@
 import request from 'supertest';
+import { describe, expect, it } from '@jest/globals';
 import { createApp } from '../src/app';
 
 describe('Dashboard and docs routes', () => {

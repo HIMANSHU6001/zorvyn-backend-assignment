@@ -13,3 +13,4 @@ variables:
   userId: ""
   recordId: ""
   categoryId: ""
+  auditLogId: ""

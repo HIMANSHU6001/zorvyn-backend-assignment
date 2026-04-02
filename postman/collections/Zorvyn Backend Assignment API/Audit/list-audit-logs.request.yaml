@@ -1,0 +1,36 @@
+$kind: http-request
+name: List Audit Logs
+method: GET
+url: '{{baseUrl}}/audit-logs?page=1&limit=10&action=CREATE&entityType=FINANCIAL_RECORD'
+order: 1000
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{accessToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200", function () {
+        pm.response.to.have.status(200);
+      });
+
+      pm.test("Response is JSON", function () {
+        pm.response.to.be.json;
+      });
+
+      pm.test("Response contains audit logs", function () {
+        const body = pm.response.json();
+        pm.expect(body).to.have.property("data");
+        pm.expect(body.data).to.have.property("logs");
+      });
+
+      // Auto-save first audit log id when available
+      if (pm.response.code === 200) {
+        const body = pm.response.json();
+        const firstLog = body?.data?.logs?.[0];
+        if (firstLog && firstLog.id) {
+          pm.collectionVariables.set("auditLogId", firstLog.id);
+        }
+      }

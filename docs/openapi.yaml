@@ -154,6 +154,43 @@ components:
           type: string
           nullable: true
           example: Weekly supermarket bill
+    AuditLogObject:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        action:
+          type: string
+          enum: [CREATE, UPDATE, DELETE]
+        entityType:
+          type: string
+          enum: [USER, FINANCIAL_RECORD]
+        entityId:
+          type: string
+        metadata:
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        user:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            email:
+              type: string
+              format: email
+            role:
+              type: string
+              enum: [VIEWER, ANALYST, ADMIN]
+            status:
+              type: string
+              enum: [ACTIVE, INACTIVE]
 paths:
   /api/health:
     get:
@@ -424,6 +461,112 @@ paths:
                 $ref: '#/components/schemas/ErrorEnvelope'
         '404':
           description: Category not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/audit-logs:
+    get:
+      tags: [Audit]
+      summary: List audit logs (ADMIN only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            example: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            example: 10
+        - in: query
+          name: action
+          schema:
+            type: string
+            enum: [CREATE, UPDATE, DELETE]
+        - in: query
+          name: entityType
+          schema:
+            type: string
+            enum: [USER, FINANCIAL_RECORD]
+        - in: query
+          name: userId
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: entityId
+          schema:
+            type: string
+        - in: query
+          name: startDate
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: endDate
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Paginated audit logs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: Forbidden (requires ADMIN)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/audit-logs/{id}:
+    get:
+      tags: [Audit]
+      summary: Get audit log by id (ADMIN only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Audit log details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '403':
+          description: Forbidden (requires ADMIN)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: Audit log not found
           content:
             application/json:
               schema:

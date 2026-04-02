@@ -3,3 +3,5 @@ dist
 /src/generated/prisma
 .env
 .postman
+tests/**/*.js
+tests/**/*.js.map
