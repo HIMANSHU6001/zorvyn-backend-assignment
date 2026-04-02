@@ -1,32 +1,17 @@
-import express, { Request, Response } from 'express';
-import { disconnectRedis, ensureRedisConnected, redis } from './config/redis';
+import express from 'express';
+import { errorMiddleware } from './common/middleware/error.middleware';
+import { notFoundMiddleware } from './common/middleware/not-found.middleware';
+import { disconnectRedis, ensureRedisConnected } from './config/redis';
+import apiRouter from './routes';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
-app.get('/health', (req: Request, res: Response) => {
-  res.status(200).json({
-    success: true,
-    message: 'Finance Dashboard API is up and running',
-  });
-});
-
-app.get('/health/redis', async (_req: Request, res: Response) => {
-  try {
-    await redis.ping();
-    res.status(200).json({
-      success: true,
-      message: 'Redis is connected',
-    });
-  } catch {
-    res.status(503).json({
-      success: false,
-      message: 'Redis is not connected',
-    });
-  }
-});
+app.use(apiRouter);
+app.use(notFoundMiddleware);
+app.use(errorMiddleware);
 
 async function startServer() {
   try {
