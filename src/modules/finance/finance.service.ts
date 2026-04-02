@@ -2,7 +2,20 @@ import { AuditAction, EntityType, Role } from '../../generated/prisma/enums';
 import prisma from '../../config/prisma';
 import { HttpError } from '../../common/errors/http-error';
 import type { AuthenticatedUser } from '../../common/types/auth.types';
-import type { CreateRecordBody, ListRecordsQuery, UpdateRecordBody } from './finance.validation';
+import type {
+  CreateCategoryBody,
+  CreateRecordBody,
+  ListCategoriesQuery,
+  ListRecordsQuery,
+  UpdateRecordBody,
+} from './finance.validation';
+
+const categorySelect = {
+  id: true,
+  name: true,
+  createdAt: true,
+  updatedAt: true,
+} as const;
 
 const financialRecordSelect = {
   id: true,
@@ -10,11 +23,18 @@ const financialRecordSelect = {
   amount: true,
   type: true,
   category: true,
+  categoryId: true,
   date: true,
   note: true,
   createdAt: true,
   updatedAt: true,
   deletedAt: true,
+  categoryRef: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
 } as const;
 
 type SelectedFinancialRecord = {
@@ -23,21 +43,132 @@ type SelectedFinancialRecord = {
   amount: { toString(): string };
   type: string;
   category: string;
+  categoryId: string | null;
   date: Date;
   note: string | null;
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;
+  categoryRef: {
+    id: string;
+    name: string;
+  } | null;
 };
 
+export async function createCategory(user: AuthenticatedUser, payload: CreateCategoryBody) {
+  const name = payload.name.trim();
+  const normalizedName = normalizeCategoryName(name);
+
+  const existing = await prisma.category.findFirst({
+    where: {
+      userId: user.id,
+      normalizedName,
+    },
+    select: {
+      id: true,
+      deletedAt: true,
+    },
+  });
+
+  if (existing && !existing.deletedAt) {
+    throw new HttpError(409, 'Category already exists');
+  }
+
+  if (existing?.deletedAt) {
+    return prisma.category.update({
+      where: { id: existing.id },
+      data: {
+        name,
+        deletedAt: null,
+      },
+      select: categorySelect,
+    });
+  }
+
+  return prisma.category.create({
+    data: {
+      userId: user.id,
+      name,
+      normalizedName,
+    },
+    select: categorySelect,
+  });
+}
+
+export async function listCategories(user: AuthenticatedUser, query: ListCategoriesQuery) {
+  const page = query.page;
+  const limit = query.limit;
+  const skip = (page - 1) * limit;
+
+  const where: Record<string, unknown> = {
+    userId: user.id,
+    deletedAt: null,
+  };
+
+  if (query.search) {
+    where.name = {
+      contains: query.search,
+      mode: 'insensitive',
+    };
+  }
+
+  const [categories, total] = await Promise.all([
+    prisma.category.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: [{ name: 'asc' }],
+      select: categorySelect,
+    }),
+    prisma.category.count({ where }),
+  ]);
+
+  return {
+    categories,
+    meta: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit) || 1,
+    },
+  };
+}
+
+export async function softDeleteCategory(user: AuthenticatedUser, id: string) {
+  const category = await prisma.category.findFirst({
+    where: {
+      id,
+      userId: user.id,
+      deletedAt: null,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!category) {
+    throw new HttpError(404, 'Category not found');
+  }
+
+  await prisma.category.update({
+    where: { id: category.id },
+    data: {
+      deletedAt: new Date(),
+    },
+  });
+}
+
 export async function createRecord(user: AuthenticatedUser, payload: CreateRecordBody) {
+  const category = await getAccessibleCategory(user, payload.categoryId);
+
   const created = await prisma.$transaction(async (tx) => {
     const record = await tx.financialRecord.create({
       data: {
         userId: user.id,
         amount: payload.amount,
         type: payload.type,
-        category: payload.category,
+        categoryId: category.id,
+        category: category.name,
         date: payload.date,
         note: payload.note,
       },
@@ -52,7 +183,7 @@ export async function createRecord(user: AuthenticatedUser, payload: CreateRecor
         entityId: record.id,
         metadata: {
           type: record.type,
-          category: record.category,
+          category: record.categoryRef?.name ?? record.category,
         },
       },
     });
@@ -122,6 +253,7 @@ export async function updateRecord(user: AuthenticatedUser, id: string, payload:
       amount: true,
       type: true,
       category: true,
+      categoryId: true,
       date: true,
       note: true,
     },
@@ -133,10 +265,23 @@ export async function updateRecord(user: AuthenticatedUser, id: string, payload:
 
   ensureRecordAccess(user, existing.userId);
 
+  const updatedData: Record<string, unknown> = {
+    amount: payload.amount,
+    type: payload.type,
+    date: payload.date,
+    note: payload.note,
+  };
+
+  if (payload.categoryId) {
+    const category = await getAccessibleCategory(user, payload.categoryId);
+    updatedData.categoryId = category.id;
+    updatedData.category = category.name;
+  }
+
   const updated = await prisma.$transaction(async (tx) => {
     const record = await tx.financialRecord.update({
       where: { id: existing.id },
-      data: payload,
+      data: updatedData,
       select: financialRecordSelect,
     });
 
@@ -151,6 +296,7 @@ export async function updateRecord(user: AuthenticatedUser, id: string, payload:
             amount: existing.amount.toString(),
             type: existing.type,
             category: existing.category,
+            categoryId: existing.categoryId,
             date: existing.date.toISOString(),
             note: existing.note,
           },
@@ -226,11 +372,8 @@ function buildWhere(user: AuthenticatedUser, query: ListRecordsQuery) {
     where.type = query.type;
   }
 
-  if (query.category) {
-    where.category = {
-      contains: query.category,
-      mode: 'insensitive',
-    };
+  if (query.categoryId) {
+    where.categoryId = query.categoryId;
   }
 
   if (query.startDate || query.endDate) {
@@ -262,7 +405,47 @@ function buildWhere(user: AuthenticatedUser, query: ListRecordsQuery) {
 
 function mapRecord(record: SelectedFinancialRecord) {
   return {
-    ...record,
+    id: record.id,
+    userId: record.userId,
     amount: record.amount.toString(),
+    type: record.type,
+    category: record.categoryRef
+      ? {
+          id: record.categoryRef.id,
+          name: record.categoryRef.name,
+        }
+      : {
+          id: record.categoryId,
+          name: record.category,
+        },
+    date: record.date,
+    note: record.note,
+    createdAt: record.createdAt,
+    updatedAt: record.updatedAt,
+    deletedAt: record.deletedAt,
   };
+}
+
+function normalizeCategoryName(name: string) {
+  return name.trim().replace(/\s+/g, ' ').toLowerCase();
+}
+
+async function getAccessibleCategory(user: AuthenticatedUser, categoryId: string) {
+  const category = await prisma.category.findFirst({
+    where: {
+      id: categoryId,
+      userId: user.id,
+      deletedAt: null,
+    },
+    select: {
+      id: true,
+      name: true,
+    },
+  });
+
+  if (!category) {
+    throw new HttpError(404, 'Category not found');
+  }
+
+  return category;
 }

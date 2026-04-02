@@ -2,18 +2,93 @@ import { NextFunction, Request, Response } from 'express';
 import { HttpError } from '../../common/errors/http-error';
 import { sendError, sendSuccess } from '../../common/utils/response';
 import {
+  createCategory,
   createRecord,
   getRecordById,
+  listCategories,
   listRecords,
+  softDeleteCategory,
   softDeleteRecord,
   updateRecord,
 } from './finance.service';
 import {
+  categoryIdParamsSchema,
+  createCategoryBodySchema,
   createRecordBodySchema,
+  listCategoriesQuerySchema,
   listRecordsQuerySchema,
   recordIdParamsSchema,
   updateRecordBodySchema,
 } from './finance.validation';
+
+export async function createCategoryHandler(req: Request, res: Response, next: NextFunction) {
+  const parsed = createCategoryBodySchema.safeParse(req.body);
+
+  if (!parsed.success) {
+    return sendError(res, 'Validation failed', 400, parsed.error.issues);
+  }
+
+  if (!req.user) {
+    return sendError(res, 'Authentication required', 401);
+  }
+
+  try {
+    const category = await createCategory(req.user, parsed.data);
+    return sendSuccess(res, { category }, 201);
+  } catch (error) {
+    if (error instanceof HttpError) {
+      return sendError(res, error.message, error.statusCode, error.details);
+    }
+
+    return next(error);
+  }
+}
+
+export async function listCategoriesHandler(req: Request, res: Response, next: NextFunction) {
+  const parsed = listCategoriesQuerySchema.safeParse(req.query);
+
+  if (!parsed.success) {
+    return sendError(res, 'Validation failed', 400, parsed.error.issues);
+  }
+
+  if (!req.user) {
+    return sendError(res, 'Authentication required', 401);
+  }
+
+  try {
+    const result = await listCategories(req.user, parsed.data);
+    return sendSuccess(res, { categories: result.categories }, 200, result.meta);
+  } catch (error) {
+    if (error instanceof HttpError) {
+      return sendError(res, error.message, error.statusCode, error.details);
+    }
+
+    return next(error);
+  }
+}
+
+export async function deleteCategoryHandler(req: Request, res: Response, next: NextFunction) {
+  const parsed = categoryIdParamsSchema.safeParse(req.params);
+
+  if (!parsed.success) {
+    return sendError(res, 'Validation failed', 400, parsed.error.issues);
+  }
+
+  if (!req.user) {
+    return sendError(res, 'Authentication required', 401);
+  }
+
+  try {
+    await softDeleteCategory(req.user, parsed.data.id);
+    return sendSuccess(res, { message: 'Category deleted successfully' });
+  } catch (error) {
+    if (error instanceof HttpError) {
+      return sendError(res, error.message, error.statusCode, error.details);
+    }
+
+    return next(error);
+  }
+}
 
 export async function createRecordHandler(req: Request, res: Response, next: NextFunction) {
   const parsed = createRecordBodySchema.safeParse(req.body);

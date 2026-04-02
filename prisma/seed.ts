@@ -21,6 +21,12 @@ if (!adminEmail || !adminPassword) {
 const adapter = new PrismaPg(new Pool({ connectionString }));
 const prisma = new PrismaClient({ adapter });
 
+const defaultCategories = ['Salary', 'Groceries', 'Rent', 'Utilities', 'Transport', 'Entertainment'];
+
+function normalizeCategoryName(name: string) {
+  return name.trim().replace(/\s+/g, ' ').toLowerCase();
+}
+
 async function main() {
   const passwordHash = await hash(adminPassword!, 10);
 
@@ -44,6 +50,27 @@ async function main() {
       status: true,
     },
   });
+
+  for (const categoryName of defaultCategories) {
+    const name = categoryName.trim();
+    await prisma.category.upsert({
+      where: {
+        userId_normalizedName: {
+          userId: user.id,
+          normalizedName: normalizeCategoryName(name),
+        },
+      },
+      update: {
+        name,
+        deletedAt: null,
+      },
+      create: {
+        userId: user.id,
+        name,
+        normalizedName: normalizeCategoryName(name),
+      },
+    });
+  }
 
   console.log(`Seeded admin user: ${user.email} (${user.role})`);
 }
