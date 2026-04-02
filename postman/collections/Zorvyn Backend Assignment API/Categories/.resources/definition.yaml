@@ -1,0 +1,7 @@
+$kind: collection
+description: |-
+  Category management endpoints.
+  - POST /categories       — create a category for the authenticated user
+  - GET  /categories       — list categories for dropdown/autocomplete
+  - DELETE /categories/:id — soft delete a category
+order: 4

@@ -1,0 +1,30 @@
+$kind: http-request
+name: Delete Category
+method: DELETE
+url: '{{baseUrl}}/categories/{{categoryId}}'
+order: 3000
+pathVariables:
+  - key: categoryId
+    value: '{{categoryId}}'
+    description: UUID of the category to soft delete
+auth:
+  type: bearer
+  credentials:
+    - key: token
+      value: '{{accessToken}}'
+scripts:
+  - type: afterResponse
+    language: text/javascript
+    code: |-
+      pm.test("Status code is 200", function () {
+        pm.response.to.have.status(200);
+      });
+
+      pm.test("Response is JSON", function () {
+        pm.response.to.be.json;
+      });
+
+      pm.test("Response contains success message", function () {
+        const body = pm.response.json();
+        pm.expect(body).to.have.property("data");
+      });

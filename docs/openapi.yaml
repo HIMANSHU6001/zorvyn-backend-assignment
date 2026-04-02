@@ -95,12 +95,20 @@ components:
           type: string
           enum: [ACTIVE, INACTIVE]
           example: INACTIVE
+    CategoryBody:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          example: Groceries
     RecordBody:
       type: object
       required:
         - amount
         - type
-        - category
+        - categoryId
         - date
       properties:
         amount:
@@ -111,9 +119,10 @@ components:
           type: string
           enum: [INCOME, EXPENSE]
           example: INCOME
-        category:
+        categoryId:
           type: string
-          example: Salary
+          format: uuid
+          example: 4dc49d52-8f1d-4e07-b5da-f04b11bd2f56
         date:
           type: string
           format: date-time
@@ -133,9 +142,10 @@ components:
           type: string
           enum: [INCOME, EXPENSE]
           example: EXPENSE
-        category:
+        categoryId:
           type: string
-          example: Groceries
+          format: uuid
+          example: 4dc49d52-8f1d-4e07-b5da-f04b11bd2f56
         date:
           type: string
           format: date-time
@@ -312,6 +322,112 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorEnvelope'
+  /api/categories:
+    post:
+      tags: [Categories]
+      summary: Create a new category for the authenticated user
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryBody'
+      responses:
+        '201':
+          description: Category created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '409':
+          description: Category already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+    get:
+      tags: [Categories]
+      summary: List categories for dropdown/autocomplete
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            example: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            example: 50
+        - in: query
+          name: search
+          schema:
+            type: string
+            example: gro
+      responses:
+        '200':
+          description: Paginated categories list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /api/categories/{id}:
+    delete:
+      tags: [Categories]
+      summary: Soft delete a category
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Category deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+        '401':
+          description: Missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '404':
+          description: Category not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
   /api/records:
     post:
       tags: [Records]
@@ -374,10 +490,11 @@ paths:
             type: string
             enum: [INCOME, EXPENSE]
         - in: query
-          name: category
+          name: categoryId
           schema:
             type: string
-            example: Groceries
+            format: uuid
+            example: 4dc49d52-8f1d-4e07-b5da-f04b11bd2f56
         - in: query
           name: search
           schema:

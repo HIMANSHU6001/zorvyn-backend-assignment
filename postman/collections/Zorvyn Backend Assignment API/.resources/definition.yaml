@@ -12,3 +12,4 @@ variables:
   accessToken: ""
   userId: ""
   recordId: ""
+  categoryId: ""

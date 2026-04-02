@@ -1,7 +1,7 @@
 $kind: http-request
-name: Create Record
+name: Create Category
 method: POST
-url: '{{baseUrl}}/records'
+url: '{{baseUrl}}/categories'
 order: 1000
 auth:
   type: bearer
@@ -15,11 +15,7 @@ body:
   type: json
   content: |-
     {
-      "amount": 1500.5,
-      "type": "INCOME",
-      "categoryId": "{{categoryId}}",
-      "date": "2026-04-01T00:00:00.000Z",
-      "note": "Monthly salary"
+      "name": "Groceries"
     }
 scripts:
   - type: afterResponse
@@ -33,16 +29,17 @@ scripts:
         pm.response.to.be.json;
       });
 
-      pm.test("Response contains record data", function () {
+      pm.test("Response contains category", function () {
         const body = pm.response.json();
         pm.expect(body).to.have.property("data");
+        pm.expect(body.data).to.have.property("category");
       });
 
-      // Auto-save record id for subsequent requests
+      // Auto-save category id for record create/update requests
       if (pm.response.code === 201) {
         const body = pm.response.json();
-        const createdRecord = body?.data?.record ?? body?.data;
-        if (createdRecord && createdRecord.id) {
-          pm.collectionVariables.set("recordId", createdRecord.id);
+        const category = body?.data?.category;
+        if (category && category.id) {
+          pm.collectionVariables.set("categoryId", category.id);
         }
       }

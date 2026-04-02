@@ -1,7 +1,7 @@
 $kind: http-request
-name: List Records
+name: List Categories
 method: GET
-url: '{{baseUrl}}/records?page=1&limit=10&categoryId={{categoryId}}'
+url: '{{baseUrl}}/categories?page=1&limit=50'
 order: 2000
 auth:
   type: bearer
@@ -20,17 +20,17 @@ scripts:
         pm.response.to.be.json;
       });
 
-      pm.test("Response contains list data", function () {
+      pm.test("Response contains categories", function () {
         const body = pm.response.json();
         pm.expect(body).to.have.property("data");
-        pm.expect(body).to.have.property("meta");
+        pm.expect(body.data).to.have.property("categories");
       });
 
-      // Auto-save first record id when list has at least one item
+      // Auto-save first category id when available
       if (pm.response.code === 200) {
         const body = pm.response.json();
-        const firstRecord = body?.data?.[0] ?? body?.data?.records?.[0];
-        if (firstRecord && firstRecord.id) {
-          pm.collectionVariables.set("recordId", firstRecord.id);
+        const firstCategory = body?.data?.categories?.[0];
+        if (firstCategory && firstCategory.id) {
+          pm.collectionVariables.set("categoryId", firstCategory.id);
         }
       }

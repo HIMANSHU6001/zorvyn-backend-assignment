@@ -6,4 +6,4 @@ description: |-
   - GET    /records/:id  — fetch a record by id
   - PATCH  /records/:id  — update a record (ANALYST/ADMIN)
   - DELETE /records/:id  — soft delete a record (ANALYST/ADMIN)
-order: 4
+order: 5
