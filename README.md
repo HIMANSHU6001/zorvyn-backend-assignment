@@ -31,6 +31,14 @@ npm run dev
 
 API base URL: `http://localhost:3000/api`
 
+## Live Deployment (DigitalOcean Droplet)
+
+This backend is successfully deployed on a DigitalOcean droplet and is publicly accessible for review and integration.
+
+- Live API base URL: `http://168.144.24.48:3000/api`
+- Live Swagger UI: `http://168.144.24.48:3000/api/docs`
+- Live OpenAPI JSON: `http://168.144.24.48:3000/api/docs/openapi.json`
+
 ## Quick Startup (Docker)
 
 ```bash

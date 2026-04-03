@@ -151,6 +151,13 @@ REST was chosen over GraphQL due to the predictable shape of dashboard responses
 - Passwords are hashed before persistence.
 
 ## 8. Operational Requirements
+### 8.0 Production Deployment (DigitalOcean Droplet)
+The backend is successfully deployed on a DigitalOcean droplet as a live, publicly reachable environment for demonstration and API consumption.
+
+- Live API base URL: `http://168.144.24.48:3000/api`
+- Live Swagger UI: `http://168.144.24.48:3000/api/docs`
+- Live OpenAPI JSON: `http://168.144.24.48:3000/api/docs/openapi.json`
+
 ### 8.1 Local Startup
 - Install dependencies.
 - Configure `.env` from `.env.example`.
