@@ -1,8 +1,8 @@
 # Zorvyn Backend Assignment
 
-TypeScript + Express backend for a finance dashboard with Prisma/PostgreSQL, Redis, JWT auth, RBAC, categories, records, Swagger docs, and Jest tests.
+Finance dashboard backend built with TypeScript, Express, Prisma, PostgreSQL, Redis, and JWT auth.
 
-## Setup
+## Quick Startup (Local)
 
 1. Install dependencies:
 
@@ -10,74 +10,54 @@ TypeScript + Express backend for a finance dashboard with Prisma/PostgreSQL, Red
 npm install
 ```
 
-2. Copy environment values:
+2. Create environment file:
 
 ```bash
 cp .env.example .env
 ```
 
-3. Run migrations and seed:
+3. Prepare database and seed admin user:
 
 ```bash
 npx prisma migrate dev --name init
 npm run seed
 ```
 
-4. Start dev server:
+4. Start server:
 
 ```bash
 npm run dev
 ```
 
-Base URL: `http://localhost:3000/api`
+API base URL: `http://localhost:3000/api`
 
-## Docker
+## Quick Startup (Docker)
 
 ```bash
 docker compose up --build
 ```
 
-## Scripts
+The compose startup runs migrations and seed automatically.
 
-- `npm run dev` - start dev server
-- `npm run build` - compile TypeScript
-- `npm test` - run test suites
-- `npm run migrate` - Prisma migrate dev
+## Admin Login (Local)
+
+After seeding, you can log in with the admin user from your local `.env`:
+
+- `ADMIN_EMAIL`
+- `ADMIN_PASSWORD`
+
+Default sample values are available in `.env.example`.
+Use these credentials for local/dev only.
+
+## Useful Commands
+
+- `npm run dev` - run in development mode
+- `npm run build` - generate Prisma client and compile TypeScript
+- `npm test` - run Jest tests
 - `npm run seed` - seed admin + default categories
 
-## API Docs
+## Docs
 
 - Swagger UI: `http://localhost:3000/api/docs`
 - OpenAPI JSON: `http://localhost:3000/api/docs/openapi.json`
-- Redirect: `http://localhost:3000/docs`
-
-## Postman
-
-Postman assets are included in this repo under the `postman/` directory.
-
-- Collection: `postman/collections/Zorvyn Backend Assignment API`
-- Environment: `postman/environments/Zorvyn Backend - Local.yaml`
-
-Recommended flow in Postman:
-
-1. Run `Auth -> Login` to set `accessToken`.
-2. Run `Categories -> Create Category` or `List Categories` to set `categoryId`.
-3. Run `Records -> Create Record` (uses `categoryId`).
-4. Use `Records -> List/Get/Update/Delete` for verification.
-
-## Key Endpoints
-
-- `POST /api/auth/register`
-- `POST /api/auth/login`
-- `GET /api/auth/me`
-- `PATCH /api/users/:id/status`
-- `POST /api/categories`
-- `GET /api/categories`
-- `DELETE /api/categories/:id`
-- `POST /api/records`
-- `GET /api/records`
-- `GET /api/records/:id`
-- `PATCH /api/records/:id`
-- `DELETE /api/records/:id`
-- `GET /api/health`
-- `GET /api/health/redis`
+- Technical Requirements Document: `docs/TRD.md`
