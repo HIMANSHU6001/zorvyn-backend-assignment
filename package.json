@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node dist/app.js",
     "dev": "ts-node-dev --respawn --transpile-only src/app.ts",
-    "build": "tsc",
+    "prisma:generate": "prisma generate",
+    "build": "npm run prisma:generate && tsc",
     "test": "jest --runInBand",
     "migrate": "prisma migrate dev",
     "seed": "npx tsx prisma/seed.ts",

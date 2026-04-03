@@ -1,7 +1,9 @@
 services:
   api:
-    image: zorvyn-backend-assignment-app:latest
-    build: .
+    build:
+      context: .
+      args:
+        DATABASE_URL: ${DATABASE_URL}
     container_name: finance-dashboard-api
     ports:
       - "3000:3000"
@@ -11,40 +13,14 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}?schema=public
       - REDIS_URL=redis://redis:6379
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
     depends_on:
-      migrate:
-        condition: service_completed_successfully
-      seed:
-        condition: service_completed_successfully
       postgres:
         condition: service_healthy
       redis:
         condition: service_started
-    command: sh -c "npm start"
-
-  migrate:
-    image: zorvyn-backend-assignment-app:latest
-    container_name: finance-dashboard-migrate
-    environment:
-      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}?schema=public
-    depends_on:
-      postgres:
-        condition: service_healthy
-    command: sh -c "npx prisma migrate deploy"
-    restart: "no"
-
-  seed:
-    image: zorvyn-backend-assignment-app:latest
-    container_name: finance-dashboard-seed
-    environment:
-      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}?schema=public
-      - ADMIN_EMAIL=${ADMIN_EMAIL}
-      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
-    depends_on:
-      migrate:
-        condition: service_completed_successfully
-    command: sh -c "npm run seed"
-    restart: "no"
+    command: sh -c "npx prisma migrate deploy && npm run seed && npm start"
 
   postgres:
     image: postgres:15-alpine
