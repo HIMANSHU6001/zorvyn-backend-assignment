@@ -338,7 +338,7 @@ paths:
           name: month
           schema:
             type: string
-            pattern: '^\\d{4}-(0[1-9]|1[0-2])$'
+            pattern: '^[0-9]{4}-(0[1-9]|1[0-2])$'
             example: 2026-04
           description: Month filter in YYYY-MM format. Used only when startDate/endDate are not provided.
         - in: query
