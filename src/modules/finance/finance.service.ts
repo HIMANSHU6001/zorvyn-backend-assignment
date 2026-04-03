@@ -23,7 +23,6 @@ const financialRecordSelect = {
   userId: true,
   amount: true,
   type: true,
-  category: true,
   categoryId: true,
   date: true,
   note: true,
@@ -43,8 +42,7 @@ type SelectedFinancialRecord = {
   userId: string;
   amount: { toString(): string };
   type: string;
-  category: string;
-  categoryId: string | null;
+  categoryId: string;
   date: Date;
   note: string | null;
   createdAt: Date;
@@ -169,7 +167,6 @@ export async function createRecord(user: AuthenticatedUser, payload: CreateRecor
         amount: payload.amount,
         type: payload.type,
         categoryId: category.id,
-        category: category.name,
         date: payload.date,
         note: payload.note,
       },
@@ -184,7 +181,8 @@ export async function createRecord(user: AuthenticatedUser, payload: CreateRecor
         entityId: record.id,
         metadata: {
           type: record.type,
-          category: record.categoryRef?.name ?? record.category,
+          categoryId: record.categoryRef?.id ?? record.categoryId,
+          category: record.categoryRef?.name ?? 'Unknown',
         },
       },
     });
@@ -255,10 +253,15 @@ export async function updateRecord(user: AuthenticatedUser, id: string, payload:
       userId: true,
       amount: true,
       type: true,
-      category: true,
       categoryId: true,
       date: true,
       note: true,
+      categoryRef: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
     },
   });
 
@@ -297,8 +300,8 @@ export async function updateRecord(user: AuthenticatedUser, id: string, payload:
           previous: {
             amount: existing.amount.toString(),
             type: existing.type,
-            category: existing.category,
             categoryId: existing.categoryId,
+            category: existing.categoryRef?.name ?? 'Unknown',
             date: existing.date.toISOString(),
             note: existing.note,
           },
@@ -325,7 +328,7 @@ export async function softDeleteRecord(user: AuthenticatedUser, id: string) {
       id: true,
       userId: true,
       type: true,
-      category: true,
+      categoryId: true,
       categoryRef: {
         select: {
           id: true,
@@ -355,8 +358,8 @@ export async function softDeleteRecord(user: AuthenticatedUser, id: string) {
         entityId: existing.id,
         metadata: {
           type: existing.type,
-          categoryId: existing.categoryRef?.id ?? null,
-          category: existing.categoryRef?.name ?? existing.category,
+          categoryId: existing.categoryRef?.id ?? existing.categoryId,
+          category: existing.categoryRef?.name ?? 'Unknown',
           softDeleted: true,
         },
       },
@@ -428,7 +431,7 @@ function mapRecord(record: SelectedFinancialRecord) {
     type: record.type,
     category: {
       id: record.categoryRef?.id ?? record.categoryId,
-      name: record.categoryRef?.name ?? record.category,
+      name: record.categoryRef?.name ?? 'Unknown',
     },
     date: record.date,
     note: record.note,
