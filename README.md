@@ -2,7 +2,7 @@
 
 Finance dashboard backend built with TypeScript, Express, Prisma, PostgreSQL, Redis, and JWT auth.
 
-## Quick Startup (Local)
+## Quick Startup (Docker Default)
 
 1. Install dependencies:
 
@@ -16,17 +16,10 @@ npm install
 cp .env.example .env
 ```
 
-3. Prepare database and seed admin user:
+3. Start everything:
 
 ```bash
-npx prisma migrate dev --name init
-npm run seed
-```
-
-4. Start server:
-
-```bash
-npm run dev
+docker compose up --build
 ```
 
 API base URL: `http://localhost:3000/api`

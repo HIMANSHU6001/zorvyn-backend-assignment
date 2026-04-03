@@ -4,8 +4,8 @@ info:
   version: 1.0.0
   description: API documentation for authentication, RBAC, health checks, and user management.
 servers:
-  - url: http://localhost:3000
-    description: Local development
+  - url: /
+    description: Current environment (same origin)
 components:
   securitySchemes:
     bearerAuth:
